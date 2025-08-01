@@ -148,24 +148,52 @@ if (contactForm) {
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             submitBtn.disabled = true;
             
-            // Simulate API call
-            setTimeout(() => {
-                const successMessage = document.createElement('div');
-                successMessage.className = 'success-message';
-                successMessage.innerHTML = '<i class="fas fa-check-circle"></i> Message sent successfully! I\'ll get back to you soon.';
+            // Send form data to Formspree
+            const formData = new FormData(contactForm);
+            
+            fetch('https://formspree.io/f/xyzppaod', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    const successMessage = document.createElement('div');
+                    successMessage.className = 'success-message';
+                    successMessage.innerHTML = '<i class="fas fa-check-circle"></i> Message sent successfully! I\'ll get back to you soon.';
+                    
+                    contactForm.appendChild(successMessage);
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    
+                    // Reset form
+                    contactForm.reset();
+                    
+                    // Remove success message after 5 seconds
+                    setTimeout(() => {
+                        successMessage.remove();
+                    }, 5000);
+                } else {
+                    throw new Error('Failed to send message');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'error-message';
+                errorMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i> Failed to send message. Please try again.';
                 
-                contactForm.appendChild(successMessage);
+                contactForm.appendChild(errorMessage);
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
                 
-                // Reset form
-                contactForm.reset();
-                
-                // Remove success message after 5 seconds
+                // Remove error message after 5 seconds
                 setTimeout(() => {
-                    successMessage.remove();
+                    errorMessage.remove();
                 }, 5000);
-            }, 2000);
+            });
         } else {
             const errorMessage = document.createElement('div');
             errorMessage.className = 'error-message';
